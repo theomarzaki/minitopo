@@ -221,11 +221,11 @@ class TopoParameter(Parameter):
             delay, bw = float(c[0]), float(c[1])
             return delay, bw, get_bandwidth_delay_product_divided_by_mtu(delay, bw), loss_perc, is_backup
         if len(c) == 3:
-            return float(c[0]), float(c[2]), int(c[1]), loss_perc, is_backup
+            return float(c[0]), float(c[2]), get_bandwidth_delay_product_divided_by_mtu(delay, bw), loss_perc, is_backup
         if len(c) == 4:
-            return float(c[0]), float(c[2]), int(c[1]), float(c[3]), is_backup
+            return float(c[0]), float(c[2]), get_bandwidth_delay_product_divided_by_mtu(delay, bw), float(c[3]), is_backup
         if len(c) == 5:
-            return float(c[0]), float(c[2]), int(c[1]), float(c[3]), int(c[4])
+            return float(c[0]), float(c[2]), get_bandwidth_delay_product_divided_by_mtu(delay, bw), float(c[3]), int(c[4])
 
         raise ValueError("Invalid link characteristics: {}".format(value))
 
