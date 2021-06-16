@@ -202,6 +202,9 @@ class TopoParameter(Parameter):
     def parse_link_characteristics(self, value):
         """
         The format of a link characteristic is one of the following:
+            - "{delay},{queue_size},{bandwidth},{loss_perc},{is_backup},
+                {delay_variation},{delay_distribution},{loss_correlation},{corruption},{reoder_delay},
+                {reorder_perc},{reorder_correlation}"
             - "{delay},{queue_size},{bandwidth},{loss_perc},{is_backup}"
             - "{delay},{queue_size},{bandwidth},{loss_perc}"
             - "{delay},{queue_size},{bandwidth}"
@@ -225,6 +228,11 @@ class TopoParameter(Parameter):
         if len(c) == 4:
             return float(c[0]), float(c[2]), get_bandwidth_delay_product_divided_by_mtu(float(c[0]), float(c[2])), float(c[3]), is_backup
         if len(c) == 5:
+            return float(c[0]), float(c[2]), get_bandwidth_delay_product_divided_by_mtu(float(c[0]), float(c[2])), float(c[3]), int(c[4])
+        if len(c) == 12:
+            print( float(c[0]), float(c[2]), get_bandwidth_delay_product_divided_by_mtu(float(c[0]), float(c[2])), float(c[3]), int(c[4]), \
+                int(c[5]), str(c[6]), int(c[7]), float(c[8]), int(c[9]), int(c[10]),int(c[11]) )
+
             return float(c[0]), float(c[2]), get_bandwidth_delay_product_divided_by_mtu(float(c[0]), float(c[2])), float(c[3]), int(c[4])
 
         raise ValueError("Invalid link characteristics: {}".format(value))
