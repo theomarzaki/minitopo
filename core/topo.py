@@ -41,7 +41,7 @@ class LinkCharacteristics(object):
         netem_at        list of NetemAt instances applicable to the link
         backup          integer indicating if this link is a backup one or not (useful for MPTCP)
     """
-    def __init__(self, id, link_type, delay, queue_size, bandwidth, loss, backup=0):
+    def __init__(self, id, link_type, delay, queue_size, bandwidth, loss, backup=0,delay_variation, delay_distribution, loss_correlation, corruption, reoder_delay, reorder_perc, reorder_correlation):
         self.id = id
         self.link_type = link_type
         self.delay = delay
@@ -51,6 +51,13 @@ class LinkCharacteristics(object):
         self.queuing_delay = str(self.extract_queuing_delay(queue_size, bandwidth, delay))
         self.netem_at = []
         self.backup = backup
+        self.delay_variation = delay_variation
+        self.delay_variation = delay_variation
+        self.loss_correlation = loss_correlation
+        self.corruption = corruption
+        self.reoder_delay = reoder_delay
+        self.reorder_perc = reorder_perc
+        self.reorder_correlation = self.reorder_correlation
 
     def bandwidth_delay_product_divided_by_mtu(self):
         """
@@ -219,22 +226,21 @@ class TopoParameter(Parameter):
             delay, bandwidth, queue_size, loss_perc, is_backup
         """
         loss_perc, is_backup = 0.0, 0
+        delay_variation, delay_distribution, loss_correlation, corruption, reoder_delay, reorder_perc, reorder_correlation = 0, "distribution normal", 0, 0.0, 0, 0, 0
         c = value.split(",")
         if len(c) == 2:
             delay, bw = float(c[0]), float(c[1])
             return delay, bw, get_bandwidth_delay_product_divided_by_mtu(delay, bw), loss_perc, is_backup
         if len(c) == 3:
-            return float(c[0]), float(c[2]), get_bandwidth_delay_product_divided_by_mtu(float(c[0]), float(c[2])), loss_perc, is_backup
+            return float(c[0]), float(c[2]), get_bandwidth_delay_product_divided_by_mtu(float(c[0]), float(c[2])), loss_perc, is_backup, delay_variation, delay_distribution, loss_correlation, corruption, reoder_delay, reorder_perc, reorder_correlation
         if len(c) == 4:
-            return float(c[0]), float(c[2]), get_bandwidth_delay_product_divided_by_mtu(float(c[0]), float(c[2])), float(c[3]), is_backup
+            return float(c[0]), float(c[2]), get_bandwidth_delay_product_divided_by_mtu(float(c[0]), float(c[2])), float(c[3]), is_backup,delay_variation, delay_distribution, loss_correlation, corruption, reoder_delay, reorder_perc, reorder_correlation
         if len(c) == 5:
-            return float(c[0]), float(c[2]), get_bandwidth_delay_product_divided_by_mtu(float(c[0]), float(c[2])), float(c[3]), int(c[4])
+            return float(c[0]), float(c[2]), get_bandwidth_delay_product_divided_by_mtu(float(c[0]), float(c[2])), float(c[3]), int(c[4]),delay_variation, delay_distribution, loss_correlation, corruption, reoder_delay, reorder_perc, reorder_correlation
         if len(c) == 12:
-            print( float(c[0]), float(c[2]), get_bandwidth_delay_product_divided_by_mtu(float(c[0]), float(c[2])), float(c[3]), int(c[4]), \
-                int(c[5]), str(c[6]), int(c[7]), float(c[8]), int(c[9]), int(c[10]),int(c[11]) )
-
-            return float(c[0]), float(c[2]), get_bandwidth_delay_product_divided_by_mtu(float(c[0]), float(c[2])), float(c[3]), int(c[4])
-
+            return float(c[0]), float(c[2]), get_bandwidth_delay_product_divided_by_mtu(float(c[0]), float(c[2])), float(c[3]), int(c[4]), \
+                int(c[5]), str(c[6]), int(c[7]), float(c[8]), int(c[9]), int(c[10]),int(c[11])
+                
         raise ValueError("Invalid link characteristics: {}".format(value))
 
     def load_link_characteristics(self):
@@ -245,13 +251,13 @@ class TopoParameter(Parameter):
             if k.startswith("path"):
                 try:
                     link_type, link_id = self.parse_link_id_and_type(k)
-                    delay, bw, queue_size, loss_perc, is_backup = self.parse_link_characteristics(
+                    delay, bw, queue_size, loss_perc, is_backup, delay_variation, delay_distribution, loss_correlation, corruption, reoder_delay, reorder_perc, reorder_correlation = self.parse_link_characteristics(
                         self.parameters[k])
                 except ValueError as e:
                     logging.error("Ignored path {}: {}".format(k, e))
                 else:
                     path = LinkCharacteristics(link_id, link_type, delay, queue_size,
-                            bw, loss_perc, backup=is_backup)
+                            bw, loss_perc, backup=is_backup,delay_variation, delay_distribution, loss_correlation, corruption, reoder_delay, reorder_perc, reorder_correlation)
                     self.link_characteristics.append(path)
 
     def __str__(self):
