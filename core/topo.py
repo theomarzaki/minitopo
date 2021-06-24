@@ -92,8 +92,15 @@ class LinkCharacteristics(object):
         return "tc qdisc del dev {} root; tc qdisc del dev {} ingress ".format(ifname, ifname)
 
     def build_bandwidth_cmd(self, ifname, replace=False):
-        return "tc qdisc {} dev {} root handle 1:0 tbf rate {}mbit burst 15000 limit {}".format(
+        command = "tc qdisc {} dev {} root handle 1:0 tbf rate {}mbit burst 15000 limit {}".format(
             "replace" if replace else "add", ifname, self.bandwidth, self.buffer_size())
+
+        command += F" && tc qdisc change dev {ifname} root netem delay {self.delay}ms {self.delay_variation}ms {self.delay_distribution}"
+        command += F" && tc qdisk change dev {ifname} root netem loss {self.loss}% {self.loss_correlation}%"
+        command += F" && tc qdisk change dev {ifname} root netem delay {self.reorder_delay}ms reorder {self.reorder_perc}% {self.reorder_correlation}%"
+        command += F" && tc qdisk change dev {ifname} root netem corrupt {self.corruption}%"
+
+        return command
 
     def build_changing_bandwidth_cmd(self, ifname):
         return "&& ".join(
