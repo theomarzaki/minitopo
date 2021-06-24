@@ -98,7 +98,7 @@ class LinkCharacteristics(object):
         command += F" && tc qdisc change dev {ifname} root netem delay {self.delay}ms {self.delay_variation}ms {self.delay_distribution}"
         command += F" && tc qdisk change dev {ifname} root netem loss {self.loss}% {self.loss_correlation}%"
         command += F" && tc qdisk change dev {ifname} root netem delay {self.reorder_delay}ms reorder {self.reorder_perc}% {self.reorder_correlation}%"
-        command += F" && tc qdisk change dev {ifname} root netem corrupt {self.corruption}%"
+        #command += F" && tc qdisk change dev {ifname} root netem corrupt {self.corruption}%"
 
         return command
 
@@ -110,8 +110,15 @@ class LinkCharacteristics(object):
         )
 
     def build_netem_cmd(self, ifname, cmd, replace=False):
-        return "tc qdisc {} dev {} root handle 10: netem {} {}".format(
+        command = "tc qdisc {} dev {} root handle 10: netem {} {}".format(
             "replace" if replace else "add", ifname, cmd, "delay {}ms limit 50000".format(self.delay) if not replace else "")
+
+        command += F" && tc qdisc change dev {ifname} root netem delay {self.delay}ms {self.delay_variation}ms {self.delay_distribution}"
+        command += F" && tc qdisk change dev {ifname} root netem loss {self.loss}% {self.loss_correlation}%"
+        command += F" && tc qdisk change dev {ifname} root netem delay {self.reorder_delay}ms reorder {self.reorder_perc}% {self.reorder_correlation}%"
+        #command += F" && tc qdisk change dev {ifname} root netem corrupt {self.corruption}%"
+
+        return command
 
     def build_changing_netem_cmd(self, ifname):
         return "&& ".join(
