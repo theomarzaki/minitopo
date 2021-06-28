@@ -251,7 +251,7 @@ class TopoParameter(Parameter):
             return float(c[0]), float(c[2]), get_bandwidth_delay_product_divided_by_mtu(float(c[0]), float(c[2])), float(c[3]), int(c[4]),delay_variation, delay_distribution, loss_correlation, corruption, reoder_delay, reorder_perc, reorder_correlation
         if len(c) == 8:
             return float(c[0]), float(c[2]), get_bandwidth_delay_product_divided_by_mtu(float(c[0]), float(c[2])), float(c[3]), int(c[4]), \
-                int(c[5]), str(c[6]), int(c[7]))
+                int(c[5]), str(c[6]), int(c[7])
                 
         raise ValueError("Invalid link characteristics: {}".format(value))
 
