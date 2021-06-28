@@ -41,7 +41,7 @@ class LinkCharacteristics(object):
         netem_at        list of NetemAt instances applicable to the link
         backup          integer indicating if this link is a backup one or not (useful for MPTCP)
     """
-    def __init__(self, id, link_type, delay, queue_size, bandwidth, loss, backup,delay_variation, delay_distribution, loss_correlation, corruption, reorder_delay, reorder_perc, reorder_correlation):
+    def __init__(self, id, link_type, delay, queue_size, bandwidth, loss, backup,delay_variation, delay_distribution, loss_correlation):
         self.id = id
         self.link_type = link_type
         self.delay = delay
@@ -54,10 +54,6 @@ class LinkCharacteristics(object):
         self.delay_variation = delay_variation
         self.delay_distribution = delay_distribution
         self.loss_correlation = loss_correlation
-        self.corruption = corruption
-        self.reorder_delay = reorder_delay
-        self.reorder_perc = reorder_perc
-        self.reorder_correlation = reorder_correlation
 
     def bandwidth_delay_product_divided_by_mtu(self):
         """
@@ -97,7 +93,7 @@ class LinkCharacteristics(object):
 
         command += F" ; tc qdisc change dev {ifname} root netem delay {self.delay}ms {self.delay_variation}ms {self.delay_distribution}"
         command += F" loss {self.loss}% {self.loss_correlation}%"
-        command += F" delay {self.reorder_delay}ms reorder {self.reorder_perc}% {self.reorder_correlation}%"
+        #command += F" delay {self.reorder_delay}ms reorder {self.reorder_perc}% {self.reorder_correlation}%"
         #command += F" reorder {self.reorder_perc}% {self.reorder_correlation}% gap 7"
 
         return command
@@ -115,7 +111,7 @@ class LinkCharacteristics(object):
 
         command += F" ; tc qdisc change dev {ifname} root netem delay {self.delay}ms {self.delay_variation}ms {self.delay_distribution}"
         command += F" loss {self.loss}% {self.loss_correlation}%"
-        command += F" delay {self.reorder_delay}ms reorder {self.reorder_perc}% {self.reorder_correlation}%"
+        #command += F" delay {self.reorder_delay}ms reorder {self.reorder_perc}% {self.reorder_correlation}%"
         #command += F" reorder {self.reorder_perc}% {self.reorder_correlation}% gap 7"
 
         return command
@@ -152,11 +148,7 @@ class LinkCharacteristics(object):
     Delay Variation: {}
     Delay Distribution: {}
     Loss Correlation: {}
-    Corruption: {}
-    Reorder Delay: {}
-    Reorder Percentage: {}
-    Reorder Correlation: {}
-        """.format(self.link_type, self.id, self.delay, self.queue_size, self.bandwidth, self.loss, self.backup,self.delay_variation,self.delay_distribution,self.loss_correlation,self.corruption,self.reorder_delay,self.reorder_perc,self.reorder_correlation) + \
+        """.format(self.link_type, self.id, self.delay, self.queue_size, self.bandwidth, self.loss, self.backup,self.delay_variation,self.delay_distribution,self.loss_correlation) + \
             "".join(["\t {} \n".format(n) for n in self.netem_at])
 
 
@@ -231,8 +223,7 @@ class TopoParameter(Parameter):
         """
         The format of a link characteristic is one of the following:
             - "{delay},{queue_size},{bandwidth},{loss_perc},{is_backup},
-                {delay_variation},{delay_distribution},{loss_correlation},{corruption},{reoder_delay},
-                {reorder_perc},{reorder_correlation}"
+                {delay_variation},{delay_distribution},{loss_correlation}"
             - "{delay},{queue_size},{bandwidth},{loss_perc},{is_backup}"
             - "{delay},{queue_size},{bandwidth},{loss_perc}"
             - "{delay},{queue_size},{bandwidth}"
@@ -258,9 +249,9 @@ class TopoParameter(Parameter):
             return float(c[0]), float(c[2]), get_bandwidth_delay_product_divided_by_mtu(float(c[0]), float(c[2])), float(c[3]), is_backup,delay_variation, delay_distribution, loss_correlation, corruption, reoder_delay, reorder_perc, reorder_correlation
         if len(c) == 5:
             return float(c[0]), float(c[2]), get_bandwidth_delay_product_divided_by_mtu(float(c[0]), float(c[2])), float(c[3]), int(c[4]),delay_variation, delay_distribution, loss_correlation, corruption, reoder_delay, reorder_perc, reorder_correlation
-        if len(c) == 12:
+        if len(c) == 8:
             return float(c[0]), float(c[2]), get_bandwidth_delay_product_divided_by_mtu(float(c[0]), float(c[2])), float(c[3]), int(c[4]), \
-                int(c[5]), str(c[6]), int(c[7]), float(c[8]), int(c[9]), int(c[10]),int(c[11])
+                int(c[5]), str(c[6]), int(c[7]))
                 
         raise ValueError("Invalid link characteristics: {}".format(value))
 
@@ -272,13 +263,13 @@ class TopoParameter(Parameter):
             if k.startswith("path"):
                 try:
                     link_type, link_id = self.parse_link_id_and_type(k)
-                    delay, bw, queue_size, loss_perc, is_backup, delay_variation, delay_distribution, loss_correlation, corruption, reorder_delay, reorder_perc, reorder_correlation = self.parse_link_characteristics(
+                    delay, bw, queue_size, loss_perc, is_backup, delay_variation, delay_distribution, loss_correlation = self.parse_link_characteristics(
                         self.parameters[k])
                 except ValueError as e:
                     logging.error("Ignored path {}: {}".format(k, e))
                 else:
                     path = LinkCharacteristics(link_id, link_type, delay, queue_size,
-                            bw, loss_perc, is_backup,delay_variation, delay_distribution, loss_correlation, corruption, reorder_delay, reorder_perc, reorder_correlation)
+                            bw, loss_perc, is_backup,delay_variation, delay_distribution, loss_correlation)
                     self.link_characteristics.append(path)
 
     def __str__(self):
